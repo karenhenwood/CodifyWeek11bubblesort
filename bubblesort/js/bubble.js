@@ -1,55 +1,36 @@
-var c = document.getElementById("canvas");
-var ctx = c.getContext("2d");
-var r = 100;
-var length = 24;
+var c2 = document.getElementById("canvas2");
+var ctx2 = c2.getContext("2d");
+var fontSize2 = 20;
+var length2;
+var array = [];
 
-function createCanvas(radius){
-	width = (radius * 2) + 50,
-    height = (radius * 2) + 50,
-    c.width = width;
-    c.height = height;
+document.getElementById('enter').onclick =  function(){
+	length2 = document.getElementById('numNodes').value;
+	 // document.getElementById('numNodes').value = "";
+	for (i=0;i<length2;++i){
+		array[i]=i;
+ 	}
+	
+	array = shuffle(array)
+	console.log(array)
 }
 
-createCanvas(r)
+// function shuffle(array) {
+//   var tmp, current, top = array.length;
+//   if(top) while(--top) {
+//     current = Math.floor(Math.random() * (top + 1));
+//     tmp = array[current];
+//     array[current] = array[top];
+//     array[top] = tmp;
+//   }
+//   return array;
+// }
 
 
-function drawNumbers(nodes, radius, offsetIndex){
-	//make text relative to the radius
-	ctx.font = radius*0.15 + "px arial";
-	//make the middle of the text append to the x, y coordinates determined below
-	ctx.textBaseline="middle";
-  	ctx.textAlign="center";
-  	//relocate the upper left corner of the context field to the center"
-	ctx.translate(c.width/2, c.height/2 )
 
-	offset = offsetIndex*((2*Math.PI)/nodes)
-	for(i=0;i<nodes;i++){
-		angle = ((2*Math.PI)/nodes)*i;//angle for given text is full circle/number of texts* the number it is
-	    ctx.rotate(angle+offset);
-	    ctx.translate(0, -radius*0.85);
-	    ctx.rotate(-(angle+offset));
-	    ctx.fillText(i, 0, 0);
-	    ctx.rotate(angle+offset);
-	    ctx.translate(0, radius*0.85);
-	    ctx.rotate(-(angle+offset));
-	}
-	ctx.translate(-c.width/2,-c.height/2)
-}
 
-k=0;
 
-function animation_loop() {
-	ctx.clearRect(0,0,c.width,c.height)
-	drawNumbers(length, r, k)
-  	setTimeout(function(){
-    k++;
-    if(k<=length){
-      animation_loop();
-    }
-  }, 500);
-};
 
-animation_loop();
 
 
 
