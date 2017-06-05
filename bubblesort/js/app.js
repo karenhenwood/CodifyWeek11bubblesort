@@ -1,7 +1,5 @@
 var c = document.getElementById("canvas1");
 var ctx = c.getContext("2d");
-var c2 = document.getElementById("canvas2");
-var ctx2 = c2.getContext("2d");
 var fontSize = 20;
 var radius;
 var length;
@@ -12,25 +10,32 @@ document.getElementById('enter').onclick =  function(){
 	length = document.getElementById('numNodes').value;
 	document.getElementById('numNodes').value = "";
 	setRadius();
-	createCanvas()
-	ctx.clearRect(0,0,c.width,c.height)
+	createCanvas();
+	ctx.clearRect(0,0,c.width,c.height);
 	drawNumbers(0);
 	arrayInit();
+	clearArray();
 	printArray();
 };
 
 document.getElementById('play').onclick = function(){
 	var k=0;
+	var swapreturn;
 
 	function animation_loop() {
 		ctx.clearRect(0,0,c.width,c.height)
 		drawNumbers(k)
+		highlightArray(k);
+		swapreturn = swap(array[k],array[k+1])
+		console.log(swapreturn)
 	  	setTimeout(function(){
 	    k++;
 	    if(k<=length){
 	      animation_loop();
 	    }
+	    
 	  }, 500);
+
 	}
 	animation_loop();
 };
@@ -50,6 +55,7 @@ function createCanvas(){
     c.height = height;
 	ctx.font = fontSize+"px Arial"
 }
+
 
 
 function drawNumbers(offsetIndex){
@@ -99,8 +105,8 @@ function drawNumbers(offsetIndex){
 		}    
 	    //draw canvas edges for troubleshooting
 	 	//ctx.lineWidth = 2;
-		//ctx.strokeStyle="#FF0000";
-		//ctx.strokeRect(0, 0, c.width, c.height);
+		// ctx.strokeStyle="#FF0000";
+		// ctx.strokeRect(0, 0, c.width, c.height);
 	}
 	ctx.translate(-c.width/2,-c.height/2)
 
@@ -132,8 +138,69 @@ function arrayInit(){
 }
 
 function printArray(){
-	console.log(array)
-	ctx2.fillText(array, 50, 50);
+
+for(i=0;i<array.length;i++){
+	var inDiv = document.createElement('div')
+	inDiv.className = "arrayValueHolder"
+	inDiv.innerHTML = array[i];
+	inDiv.style.fontSize = fontSize +'px';
+	inDiv.style.width = fontSize*1.2 +'px';
+	document.getElementById('arrayHolder').appendChild(inDiv)
+}
+
+}
+
+function clearArray(){
+	var holder = document.getElementById('arrayHolder')
+
+	while (holder.hasChildNodes()) {
+    holder.removeChild(holder.lastChild);
+	}
+}
+
+function highlightArray(loopIndex){
+	var arrayDivs = document.getElementsByClassName('arrayValueHolder')
+
+	for(i=0;i<array.length;i++){
+		arrayDivs[i].style.border = "none"
+	}
+	if(loopIndex<array.length-1){
+	arrayDivs[loopIndex].style.border = "1px solid blue"
+	arrayDivs[loopIndex+1].style.border = "1px solid red"}
+}
+
+
+// var swap=true;
+// while(swap==true){//if there were any swaps in the last interation of the for loop swap will be true
+// //and we will enter the while loop again. If there were no swaps swap will not have been set to true and 
+// //the loop will stop.
+// //Reinitialize swap, so loop will break if it isn't reset to true by a run through the array with swaps 
+//   swap = false;
+//   //iterate over the array
+//   for(i=0; i<numbers.length-1; i++){
+
+//     if(numbers[i]>numbers[i+1]){
+//       tempi = numbers[i];
+//       tempi1 = numbers[i+1];
+//       numbers[i]=tempi1;
+//       numbers[i+1]=tempi;
+//       swap = true;
+//     };
+
+//   };
+// };
+function swap(n1,n2){
+	var swap = false;
+	if(n1>n2){
+       temp1 = n1;
+      	temp2 = n2;
+       n1=temp2;
+       n2=temp1;
+
+       // console.log(temp1, temp2, n1, n2)
+       swap = true;
+     };
+     return [swap, n1, n2];
 }
 
 

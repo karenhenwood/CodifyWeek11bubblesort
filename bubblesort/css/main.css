@@ -1,4 +1,4 @@
-/*
-#controls{
-	display:block;
-}*/
+.arrayValueHolder{
+	display: inline-block;
+	text-align:center;
+}
