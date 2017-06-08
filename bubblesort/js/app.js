@@ -1,62 +1,93 @@
+//canvas from DOM
 var c = document.getElementById("canvas1");
+//context of canvas
 var ctx = c.getContext("2d");
+//font size. a number of items are sized relative to this
 var fontSize = 20;
+//radius of circle for for loop
 var radius;
+//length of the array and for loop
 var length;
-var s = fontSize*2.4;
+//array of numbers to sort
 var array = [];
 
 document.getElementById('enter').onclick =  function(){
+	initializePage();
+};
+
+function initializePage(){
+	//set the length of the for loop and the array from the user input
+	//then clear the input
 	length = document.getElementById('numNodes').value;
 	document.getElementById('numNodes').value = "";
+	//determine size of for loop
 	setRadius();
+	
+	//fill the array with random numbers
+	randArray();
+	//size the canvas to fit the circle of the for loop
 	createCanvas();
+
+	//clear the canvas of any previous printing
 	ctx.clearRect(0,0,c.width,c.height);
-	drawNumbers(0);
-	arrayInit();
+	//clear the array div of any previous printing
 	clearArray();
+
+	//print the for loop
+	drawNumbers(0);
+	//print the random array
 	printArray();
 };
 
-document.getElementById('play').onclick = function(){
-	var k=0;
-	var swapreturn;
-
-	function animation_loop() {
-		ctx.clearRect(0,0,c.width,c.height)
-		drawNumbers(k)
-		highlightArray(k);
-		swapreturn = swap(array[k],array[k+1])
-		console.log(swapreturn)
-	  	setTimeout(function(){
-	    k++;
-	    if(k<=length){
-	      animation_loop();
-	    }
-	    
-	  }, 500);
-
-	}
-	animation_loop();
+function setRadius(){
+	//arclength is sized to fit the numbers around the circle based on the font size
+	var s = fontSize*2.4;
+	//Circ=PI*Diameter 
+	//Circ=PI*2*Radius
+	//Radius=Circ/(PI*2)
+	//so create a diameter based on the arc length and quanity of numbers
+	//that have to fit arround the circle then solve for radius
+	radius = (s*length)/(2*Math.PI);
+	//for smaller circles, this can be cramped still, so just override 
+	//and use a larger radius
+	if (radius<s){
+		radius=s;
+	};
 };
 
+function randArray(){
+	//clear old values out 
+	array = [];
+	for (i=0;i<length;++i){
+		array[i]=i;
+ 	};
+	array = shuffle(array)
 
-function setRadius(){
-	radius = (s*length)/(2*Math.PI)
-	if (radius<s){
-		radius=(2*fontSize)
-	}
-}
+	function shuffle(array) {
+	  	var tmp, current, top = array.length;
+	  	if(top) while(--top) {
+	    	current = Math.floor(Math.random() * (top + 1));
+	    	tmp = array[current];
+	    	array[current] = array[top];
+	    	array[top] = tmp;
+	  	}
+	  	return array;
+	};
+};
 
 function createCanvas(){
-	width = (radius * 2) + 50,
-    height = (radius * 2) + 50,
-    c.width = width;
-    c.height = height;
+	c.width = (radius * 2) + 50,
+    c.height = (radius * 2) + 50,
 	ctx.font = fontSize+"px Arial"
 }
 
-
+function clearArray(){
+	var holder = document.getElementById('arrayHolder')
+	console.log(holder)
+	while (holder.hasChildNodes()) {
+    	holder.removeChild(holder.lastChild);
+	}
+}
 
 function drawNumbers(offsetIndex){
 	ctx.textBaseline="middle";
@@ -73,7 +104,6 @@ function drawNumbers(offsetIndex){
 	ctx.translate(c.width/2, c.height/2 )
 	//determine how far around the circle to start drawing.
 	offset = -offsetIndex*((2*Math.PI)/length)
-	
 	for(i=0;i<length;i++){
 		angle = ((2*Math.PI)/length)*i;//angle for given text is full circle/number of texts times the number it is
 		if((angle+offset)==0){//for numbers at top of circle
@@ -119,44 +149,61 @@ function drawNumbers(offsetIndex){
 
 }
 
-function arrayInit(){
-	for (i=0;i<length;++i){
-		array[i]=i;
- 	}
-	array = shuffle(array)
-
-		function shuffle(array) {
-	  		var tmp, current, top = array.length;
-	  		if(top) while(--top) {
-	    		current = Math.floor(Math.random() * (top + 1));
-	    		tmp = array[current];
-	    		array[current] = array[top];
-	    		array[top] = tmp;
-	  		}
-	  		return array;
-		}
-}
-
 function printArray(){
 
-for(i=0;i<array.length;i++){
-	var inDiv = document.createElement('div')
-	inDiv.className = "arrayValueHolder"
-	inDiv.innerHTML = array[i];
-	inDiv.style.fontSize = fontSize +'px';
-	inDiv.style.width = fontSize*1.2 +'px';
-	document.getElementById('arrayHolder').appendChild(inDiv)
-}
-
-}
-
-function clearArray(){
-	var holder = document.getElementById('arrayHolder')
-
-	while (holder.hasChildNodes()) {
-    holder.removeChild(holder.lastChild);
+	for(i=0;i<array.length;i++){
+		var inDiv = document.createElement('div');
+		inDiv.className = "arrayValueHolder";
+		inDiv.innerHTML = array[i];
+		inDiv.style.fontSize = fontSize +'px';
+		inDiv.style.width = fontSize*1.2 +'px';
+		document.getElementById('arrayHolder').appendChild(inDiv);
 	}
+
 }
+document.getElementById('play').onclick = function(){
+	
+play();
+
+	
+};
+
+function play(){
+	var k=0;
+	function animation_loop() {
+		ctx.clearRect(0,0,c.width,c.height)
+		drawNumbers(k)
+		if(k<length-1){
+			highlightArray(k);
+			swapreturn = swap(array[k],array[k+1]);
+			array[k] = swapreturn[1];
+			array[k+1] = swapreturn[2]; 
+			setTimeout(function(){drawSwap(k)}, 1000);
+		};
+	  	setTimeout(function(){
+	    k++;
+	    if(k<=length){
+	      animation_loop();
+	    }
+	    
+	  }, 2000);
+
+	}
+	animation_loop();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function highlightArray(loopIndex){
 	var arrayDivs = document.getElementsByClassName('arrayValueHolder')
@@ -164,11 +211,28 @@ function highlightArray(loopIndex){
 	for(i=0;i<array.length;i++){
 		arrayDivs[i].style.border = "none"
 	}
-	if(loopIndex<array.length-1){
 	arrayDivs[loopIndex].style.border = "1px solid blue"
-	arrayDivs[loopIndex+1].style.border = "1px solid red"}
+	arrayDivs[loopIndex+1].style.border = "1px solid red"
+}
+function swap(n1,n2){
+	var swap = false;
+	if(n1>n2){
+      temp1 = n1;
+      temp2 = n2;
+      n1=temp2;
+      n2=temp1;
+      swap = true;
+     };
+     return [swap, n1, n2];
 }
 
+function drawSwap(loopIndex){
+
+		var arrayValueHolders = document.getElementsByClassName('arrayValueHolder');
+
+		arrayValueHolders[loopIndex].innerHTML = array[loopIndex]
+		arrayValueHolders[loopIndex+1].innerHTML = array[loopIndex+1]
+}
 
 // var swap=true;
 // while(swap==true){//if there were any swaps in the last interation of the for loop swap will be true
@@ -189,19 +253,7 @@ function highlightArray(loopIndex){
 
 //   };
 // };
-function swap(n1,n2){
-	var swap = false;
-	if(n1>n2){
-       temp1 = n1;
-      	temp2 = n2;
-       n1=temp2;
-       n2=temp1;
 
-       // console.log(temp1, temp2, n1, n2)
-       swap = true;
-     };
-     return [swap, n1, n2];
-}
 
 
 
