@@ -10,9 +10,33 @@ var radius;
 var length;
 //array of numbers to sort
 var array = [];
+//sizeing the input to fit its palceholder text
+var input = document.getElementById('numNodes')
+input.setAttribute('size',input.getAttribute('placeholder').length);
 
-document.getElementById('enter').onclick =  function(){
-	initializePage();
+document.getElementById('initialize').onclick =  function(){
+	//check to ensure user has entered a legitimate value before intialziing page
+	var value = document.getElementById('numNodes').value;
+	if(value>=1 && value<=20){
+		initializePage();
+	}else{
+		document.getElementById('numNodes').value = "";
+		alert("Please enter a length between 1 and 20")
+	}
+};
+
+document.getElementById('play').onclick = function(){
+	//check to ensure user has initilazed before starting the animation
+	if(length>0){
+		play();
+	}else{
+		alert("Please initialize an array first")
+	}
+	//disable the play and initialize buttons one the animation starts to prevent
+	//scrambling the code while running
+	//buttons are reneabled at the end of the animation loop
+	document.getElementById('initialize').disabled=true;
+	document.getElementById('play').disabled=true;
 };
 
 function initializePage(){
@@ -61,6 +85,7 @@ function randArray(){
 	for (i=0;i<length;++i){
 		array[i]=i;
  	};
+ 	//fill the array with one of each number out of order
 	array = shuffle(array)
 
 	function shuffle(array) {
@@ -76,21 +101,25 @@ function randArray(){
 };
 
 function createCanvas(){
-	c.width = (radius * 2) + 50,
-    c.height = (radius * 2) + 50,
-	ctx.font = fontSize+"px Arial"
-}
+	//size the canvas to fit the circle of numbers with a few pixels of padding
+	//and set the fontsize to use
+	c.width = (radius * 2) + 50;
+    c.height = (radius * 2) + 50;
+	ctx.font = fontSize+"px Arial";
+};
 
 function clearArray(){
-	var holder = document.getElementById('arrayHolder1')
+	//pick off the children of the array holders one at a time from the end
+	//until all the children are dead
+	var holder = document.getElementById('arrayHolder1');
 	while (holder.hasChildNodes()) {
     	holder.removeChild(holder.lastChild);
-	}
+	};
 
-	var holder = document.getElementById('arrayHolder2')
+	var holder = document.getElementById('arrayHolder2');
 	while (holder.hasChildNodes()) {
     	holder.removeChild(holder.lastChild);
-	}
+	};
 }
 
 function drawNumbers(offsetIndex){
@@ -156,120 +185,178 @@ function drawNumbers(offsetIndex){
 function printArray(){
 
 	for(i=0;i<array.length;i++){
+		//place some empty divs on the page for the array index holder
 		var inDiv1 = document.createElement('div');
 		inDiv1.className = "arrayIndexHolder";
 		document.getElementById('arrayHolder1').appendChild(inDiv1);
-
+		//place divs on the page with the array numbers in them for the
+		//array holder
 		var inDiv2 = document.createElement('div');
 		inDiv2.className = "arrayValueHolder";
 		inDiv2.innerHTML = array[i];
 		inDiv2.style.fontSize = fontSize +'px';
-		inDiv2.style.width = fontSize*1.2 +'px';
+		inDiv2.style.width = fontSize*1.4 +'px';
 		document.getElementById('arrayHolder2').appendChild(inDiv2);
 	}
 
 }
 
-
-document.getElementById('play').onclick = function(){
-	play();
-};
-
-
+//Play function interates one passthrough of the array and is called again if swaps occur during
+//the passthrough. When one clean pass with no swaps occurs, play is no longer called and the animation stops
 function play(){
+	//start animation at 0 index of array
 	var k=0;
+	//variable to hold the return of the swap function
 	var swapreturn;
+	//varibale to flag whether a swap occured during one pass through of the array
 	var swapflag = false;
+
+	//function to place the status of the swap flag on the screen for user 
+	//(will be false at the start of each pass)
 	drawSwapFlag();
+	//function removes animation classes places on the swapFlag div at the end of
+	//the previous iteration through the array
+	unanimateEnd();
+	//kick off the animation of the for loop and array swapping
 	animation_loop();
 
 	function animation_loop() {
-		
+		//clear canvas of previous for loop
 		ctx.clearRect(0,0,c.width,c.height)
+		//redraw the for loop with the correct rotation depending
+		//on the current array index
 		drawNumbers(k)
+		
 		if(k<length-1){
+			//add color to current and next index
 			highlightArray(k);
+			//perform swaping of numbers in the array using the swap function
 			swapreturn = swap(array[k],array[k+1]);
+				//if the swap funciton indicated a swap happened
+				//update the actual array values and flag that a swap happed during
+				//this iteration of the array
 				if(swapreturn[0] == true){
 					swapflag = swapreturn[0];
 					array[k] = swapreturn[1];
 					array[k+1] = swapreturn[2];
 				};
+			//update the page with the results of the swap
 			setTimeout(function(){drawSwap(k)}, 500);
 			setTimeout(function(){drawSwapFlag()}, 750);
 		};
+		//Restart the animation for the next array index
+		//unless its the end of the array and there was a swap,
+		//in which case call the play function again for the next 
+		//iteration.
+		//If it's the end of the array and there were no swaps,
+		//play the end of sorting animations and re-enable the buttons
 	  	setTimeout(function(){
 	    		k++;
 	    		if(k<=length){
 	      			animation_loop();
 	    		}else if(swapflag==true){
-	    			play();
 	    			animateReplay();
-	    			unanimateReplay();
+	    			setTimeout(function(){unanimateReplay()},1000);
+	    			setTimeout(function(){play()}, 1000);	
+	    		}else if(swapflag==false){
+	    			animateEnd();
+	    			document.getElementById('initialize').disabled=false;
+	    			document.getElementById('play').disabled=false;
+
 	    		}
 	    }, 2000);
-	}
+	};
 	
+	function drawSwap(loopIndex){
+		//update the page with swaps after the array is updated 
+		var arrayValueHolders = document.getElementsByClassName('arrayValueHolder');
+		arrayValueHolders[loopIndex].innerHTML = array[loopIndex];
+		arrayValueHolders[loopIndex+1].innerHTML = array[loopIndex+1];
+	};
 
-	function drawSwapFlag(){
+	function drawSwapFlag(){	
 		var div = document.getElementById('swapHolder');
-		div.innerHTML ="Swap = " + swapflag;
+		div.innerHTML ="Swap = <span id='swapFlag'>"+swapflag+"</span>";
 		div.style.fontSize = fontSize +'px';
-	}
+		//Color background based on true or false state of swap. 
+		//Red for false, green for true.
+		var swapFlag = document.getElementById('swapFlag');
+		if(swapflag){
+			swapFlag.style.backgroundColor = "#4dff4d";
+		}else{
+			swapFlag.style.backgroundColor = "#ff4d4f";
+		};
+	};
+
+	function highlightArray(loopIndex){
+		var arrayIndexDivs = document.getElementsByClassName('arrayIndexHolder');
+		var arrayDivs = document.getElementsByClassName('arrayValueHolder');
+		
+		//clear out styling for previous index
+		for(i=0;i<array.length;i++){
+			arrayIndexDivs[i].innerHTML = "";
+			arrayDivs[i].style.backgroundColor = "transparent";
+			arrayIndexDivs[i].style.width = arrayDivs[i].style.width;
+		}
+
+		//print the i and i+1 into the correct divs based on the current loop index
+		arrayIndexDivs[loopIndex].innerHTML = "i";
+		arrayIndexDivs[loopIndex+1].innerHTML = "i+1";
+		arrayIndexDivs[loopIndex].style.backgroundColor = "#FF6568";
+		arrayIndexDivs[loopIndex+1].style.backgroundColor = "#A7ECE8";
+		//add background color to the correct divs based on the current loop index
+		arrayDivs[loopIndex].style.backgroundColor = "#FF6568";
+		arrayDivs[loopIndex+1].style.backgroundColor = "#A7ECE8";
+	};
+
+	function swap(n1,n2){
+		//Take in two numbers and return them swapped 
+		//if the first was greater than the second.
+		//Indicate if the were swapped or not.
+		var swap = false;
+		if(n1>n2){
+	      temp1 = n1;
+	      temp2 = n2;
+	      n1=temp2;
+	      n2=temp1;
+	      swap = true;
+	     };
+	     return [swap, n1, n2];
+	};
 
 	function animateReplay(){
  		var playButton = document.getElementById('play');
- 		playButton.className ="animated pulse";
+ 		playButton.className ="btn animated tada";
+ 		playButton.style.backgroundColor="#4dff4d"
  		var swapHolder = document.getElementById('swapHolder');
- 		swapHolder.className ="animated flash";
- 	}
+ 		swapHolder.className ="col-md-8 animated flash";
+ 	};
 
  	function unanimateReplay(){
  		var playButton = document.getElementById('play');
- 		playButton.className ="";
+ 		playButton.className ="btn";
+ 		playButton.style.backgroundColor=""
  		var swapHolder = document.getElementById('swapHolder');
- 		swapHolder.className ="";
- 		console.log('working')
- 	}
-}
+ 		swapHolder.className ="col-md-8";
+ 	};
+
+ 	function animateEnd(){
+ 		var swapHolder = document.getElementById('swapHolder');
+ 		swapHolder.className ="col-md-8 animated zoomOutRight";
+ 	};
+
+ 	function unanimateEnd(){
+ 		var swapHolder = document.getElementById('swapHolder');
+ 		swapHolder.className ="col-md-8";
+ 	};
+};
 
 
 
-function highlightArray(loopIndex){
-	var arrayIndexDivs = document.getElementsByClassName('arrayIndexHolder')
-	var arrayDivs = document.getElementsByClassName('arrayValueHolder')
-	
-	for(i=0;i<array.length;i++){
-		arrayIndexDivs[i].innerHTML = ""
-		arrayDivs[i].style.backgroundColor = "transparent"
-		arrayIndexDivs[i].style.width = arrayDivs[i].style.width
 
-	}
-	arrayIndexDivs[loopIndex].innerHTML = "i"
-	arrayIndexDivs[loopIndex+1].innerHTML = "i+1"
-	arrayIndexDivs[loopIndex].style.backgroundColor = "#FF6568"
-	arrayIndexDivs[loopIndex+1].style.backgroundColor = "#A7ECE8"
 
-	arrayDivs[loopIndex].style.backgroundColor = "#FF6568"
-	arrayDivs[loopIndex+1].style.backgroundColor = "#A7ECE8"
-}
-function swap(n1,n2){
-	var swap = false;
-	if(n1>n2){
-      temp1 = n1;
-      temp2 = n2;
-      n1=temp2;
-      n2=temp1;
-      swap = true;
-     };
-     return [swap, n1, n2];
-}
 
-function drawSwap(loopIndex){
-	var arrayValueHolders = document.getElementsByClassName('arrayValueHolder');
-	arrayValueHolders[loopIndex].innerHTML = array[loopIndex]
-	arrayValueHolders[loopIndex+1].innerHTML = array[loopIndex+1]
-}
+
 
 
 

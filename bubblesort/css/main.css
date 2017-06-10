@@ -1,7 +1,6 @@
 
-#container{
+.container{
 	width: 80%;
-	text-align:center;
 	font: sans-serif;
 	margin:auto;
 }
@@ -9,18 +8,25 @@
 .arrayValueHolder{
 	display: inline-block;
 	text-align: center;
-	border-radius: 5px;
 	padding:0 4px 0 4px;
+	border-radius: 5px;
 }
 
 .arrayIndexHolder{
 	display: inline-block;
-	text-align:left;
+	text-align: left;
 	padding:0 4px 0 4px;
 }
 
-#arrayHolder1, #arrayHolder2{
-	display:block;
+.arrayLabel{
+	text-align: right;
+}
+
+#canvasHolder{
+	text-align:center;
+}
+#swapFlag{
+	padding:0 5px 0 5px;
 }
 
 
